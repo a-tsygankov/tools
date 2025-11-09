@@ -332,20 +332,194 @@ run_dotnet() {
 EOF
 }
 
-# ---------- EXTENSIONS placeholder ----------
+# ---------- EXTENSIONS implementation ----------
 run_extensions() {
-  info "EXTENSIONS section (placeholder). Planned actions with provided args:"
-  echo "  VS Code extensions:    ${VS_CODE_EXTS}"
-  echo "  Windsurf extensions:   ${WINDSURF_EXTS}"
-  echo "  IntelliJ plugins:      ${IDEA_PLUGINS}"
-  echo "  IntelliJ config zip:   ${IDEA_CONFIG}"
-  cat <<'EOF'
-  - VS Code: code --install-extension <ext>
-  - Windsurf: windsurf --install-extension <ext> (or appropriate CLI if available)
-  - IntelliJ: install plugins via JetBrains Toolbox/CLI or copy to config
-  - Chrome extensions: (Optional) scripted via Chrome policy or direct profiles
-EOF
+  info "EXTENSIONS setup for Chrome+Safari TS/React/Vite + .NET companion…"
+
+  # 0) Homebrew update (safe to re-run)
+  info "Ensuring Homebrew is up to date…"
+  brew update || true
+
+  # 1) Core runtimes & tools
+  # Node ≥20 (brew node is current LTS), optional pnpm, HTTP clients, Docker Desktop (optional)
+  brew_install node
+  # If you prefer pnpm over npm, uncomment:
+  # brew_install pnpm
+  brew_install httpie
+  # Postman (optional GUI)
+  brew_cask_install postman || true
+  # Docker Desktop (optional)
+  # brew_cask_install docker || true
+
+  # 2) Global npm CLIs for extension dev
+  # TypeScript, Vite, linters/formatters, and web-ext for running/testing
+  npm_global_install "typescript@^5.4"
+  npm_global_install "ts-node"
+  npm_global_install "vite@^5"
+  npm_global_install "eslint"
+  npm_global_install "prettier"
+  npm_global_install "web-ext"
+
+  # 3) Editors/IDEs (CLI availability)
+  # VS Code (provides 'code' CLI)
+  ensure_code_cli
+  # Windsurf already installed in BASE; make sure CLI is reachable
+  ensure_windsurf_cli
+
+  # JetBrains Toolbox (optional; easiest way to manage IDEA/WebStorm/Rider)
+  brew_cask_install jetbrains-toolbox || true
+  # You can open Toolbox once to install IntelliJ/WebStorm/Rider as needed.
+
+  # 4) Xcode (Safari converter)
+  if xcodebuild -version >/dev/null 2>&1; then
+    info "Xcode detected: $(xcodebuild -version | head -n 1)"
+    if xcrun --find safari-web-extension-converter >/dev/null 2>&1; then
+      info "Safari Web Extension Converter available."
+    else
+      warn "Safari converter not found via xcrun; ensure Xcode Command Line Tools are installed."
+      xcode-select --install || true
+    fi
+  else
+    warn "Xcode not detected. Install Xcode 15+ from App Store to enable Safari packaging."
+  fi
+
+  # 5) Editor/IDE extensions
+  # Defaults per your instruction sheet (VS Code / Windsurf)
+  local DEFAULT_VSCODE_EXTS="\
+esbenp.prettier-vscode \
+dbaeumer.vscode-eslint \
+antfu.vite \
+kamikillerto.vscode-colorize \
+formulahendry.auto-rename-tag \
+ritwickdey.LiveServer \
+ms-dotnettools.csharp \
+humao.rest-client"
+
+  local DEFAULT_WINDSURF_EXTS="\
+esbenp.prettier-vscode \
+dbaeumer.vscode-eslint \
+antfu.vite \
+kamikillerto.vscode-colorize \
+formulahendry.auto-rename-tag \
+ritwickdey.LiveServer \
+ms-dotnettools.csharp \
+humao.rest-client"
+
+  # Merge CLI-provided lists with defaults (avoid duplicates)
+  # VS Code
+  if [[ -n "${VS_CODE_EXTS// /}" ]]; then
+    info "Installing requested VS Code extensions…"
+    install_vscode_extensions "$VS_CODE_EXTS"
+  fi
+  info "Installing recommended VS Code extensions…"
+  install_vscode_extensions "$DEFAULT_VSCODE_EXTS"
+
+  # Windsurf
+  if [[ -n "${WINDSURF_EXTS// /}" ]]; then
+    info "Installing requested Windsurf extensions…"
+    install_windsurf_extensions "$WINDSURF_EXTS"
+  fi
+  info "Installing recommended Windsurf extensions…"
+  install_windsurf_extensions "$DEFAULT_WINDSURF_EXTS"
+
+  # 6) JetBrains IDEA plugins (note: Toolbox-driven; CLI varies per IDE)
+  if [[ -n "${IDEA_PLUGINS// /}" ]] || [[ -n "${IDEA_CONFIG// /}" ]]; then
+    warn "JetBrains plugin/config automation is environment-specific."
+    echo "Requested plugins: ${IDEA_PLUGINS}"
+    echo "Requested config zip: ${IDEA_CONFIG}"
+    cat <<'JETBRAINS_NOTE'
+Tips:
+  - Use JetBrains Toolbox to install IntelliJ/WebStorm/Rider.
+  - Plugins can be scripted by placing .zip/.jar into:
+      ~/Library/Application Support/JetBrains/<IDEA*/plugins/
+    or via Settings Sync / Import Settings.
+  - You can also drive plugin installs using the IDE's Toolbox/IDE scripts.
+JETBRAINS_NOTE
+  fi
+
+  # 7) Quick project scaffold hint (printed once; non-invasive)
+  cat <<'NEXT_STEPS'
+Next steps (manual, per your structure):
+  - extension/ : npm install && npm run dev/build && web-ext run
+  - backend/   : dotnet new webapi && dotnet run
+  - Safari:     xcrun safari-web-extension-converter ./extension/dist (after build)
+NEXT_STEPS
+
+  info "EXTENSIONS setup complete."
 }
+
+# ---------- Additional helpers (put near other helpers) ----------
+npm_global_install() {
+  # $1=package[@version]
+  local pkg="$1"
+  if npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
+    info "npm (global) already has: $pkg"
+  else
+    info "Installing npm (global): $pkg"
+    npm install -g "$pkg"
+  fi
+}
+
+ensure_code_cli() {
+  if have_cmd code; then return 0; fi
+  info "VS Code CLI not found; installing Visual Studio Code via Homebrew cask…"
+  brew_cask_install visual-studio-code
+  # brew usually puts 'code' on PATH; as a fallback, try to link it:
+  if ! have_cmd code && [[ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]]; then
+    local link_target="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+    local link_path="/opt/homebrew/bin/code"
+    ln -sf "$link_target" "$link_path" || true
+  fi
+  have_cmd code || warn "VS Code CLI still not available; restart shell or add it to PATH."
+}
+
+ensure_windsurf_cli() {
+  if have_cmd windsurf; then return 0; fi
+  # Windsurf adds itself to PATH via ~/.codeium/windsurf/bin in your bash profile snippet.
+  local ws="$HOME/.codeium/windsurf/bin/windsurf"
+  if [[ -x "$ws" ]]; then
+    return 0
+  else
+    warn "Windsurf CLI not detected. If installed via cask or manually, ensure it's on PATH."
+  fi
+}
+
+install_vscode_extensions() {
+  # expects space-separated IDs in $1
+  local list="$1"
+  ensure_code_cli
+  if ! have_cmd code; then
+    warn "Skipping VS Code extension installation (code CLI not available)."
+    return
+  fi
+  for ext in $list; do
+    if code --list-extensions | grep -Fxq "$ext"; then
+      info "VS Code extension already installed: $ext"
+    else
+      info "Installing VS Code extension: $ext"
+      code --install-extension "$ext" --force
+    fi
+  done
+}
+
+install_windsurf_extensions() {
+  # expects space-separated IDs in $1
+  local list="$1"
+  ensure_windsurf_cli
+  if ! have_cmd windsurf; then
+    warn "Skipping Windsurf extension installation (windsurf CLI not available)."
+    return
+  fi
+  for ext in $list; do
+    if windsurf --list-extensions | grep -Fxq "$ext"; then
+      info "Windsurf extension already installed: $ext"
+    else
+      info "Installing Windsurf extension: $ext"
+      windsurf --install-extension "$ext" || warn "Failed to install Windsurf ext: $ext"
+    fi
+  done
+}
+
 
 # ---------- Orchestration ----------
 main() {
