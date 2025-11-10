@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csharp",
+        "formulahendry.code-runner",
+        "humao.rest-client",
+        "ms-vscode.vscode-browser-debug"
+    ],
+    "unwantedRecommendations": []
+}

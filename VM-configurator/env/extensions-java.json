@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "redhat.java",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "vscjava.vscode-spring-initializr",
+        "richardwillis.vscode-gradle",
+        "vscjava.vscode-java-test"
+    ],
+    "unwantedRecommendations": []
+}

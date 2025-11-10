@@ -1,0 +1,18 @@
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "antfu.vite",
+        "kamikillerto.vscode-colorize",
+        "formulahendry.auto-rename-tag",
+        "ritwickdey.LiveServer",
+        "ms-dotnettools.csharp",
+        "humao.rest-client",
+        "aaravb.chrome-extension-developer-tools",
+        "ms-vscode.vscode-browser-debug",
+        "peterjausovec.vscode-docker"
+    ],
+    "unwantedRecommendations": [
+        "eg2.tslint"
+    ]
+}
