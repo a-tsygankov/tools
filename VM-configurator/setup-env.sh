@@ -309,10 +309,12 @@ peterjausovec.vscode-docker
 #  Orchestration
 # ============================================================
 main() {
-  $DO_BASE && run_base
-  $DO_JAVA && run_java
-  $DO_DOTNET && run_dotnet
-  $DO_EXT && run_extensions
+  if [ "$DO_BASE" = true ]; then run_base; fi
+  if [ "$DO_JAVA" = true ]; then run_java; fi
+  if [ "$DO_DOTNET" = true ]; then run_dotnet; fi
+  if [ "$DO_EXT" = true ]; then run_extensions; fi
+
   info "✅ Environment setup complete. Restart your terminal or run: exec \$SHELL -l"
 }
+
 main "$@"
