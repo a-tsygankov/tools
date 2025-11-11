@@ -173,7 +173,19 @@ run_base() {
     if ! grep -Fxq "$brew_bash" /etc/shells; then
       echo "$brew_bash" | sudo tee -a /etc/shells >/dev/null
     fi
-    chsh -s "$brew_bash" || true
+
+    if [[ "$SHELL" != "$brew_bash" ]]; then
+      if [ -t 0 ]; then
+        # Interactive shell
+        info "Changing login shell to $brew_bash (you may need to re-log)..."
+        chsh -s "$brew_bash" || warn "Could not change shell automatically."
+      else
+        # Non-interactive mode — skip to avoid hanging
+        warn "Skipping chsh (non-interactive mode). Run manually if needed: chsh -s $brew_bash"
+      fi
+    else
+      info "Default shell already set to brew bash."
+    fi
   fi
 
   # Git prompt & history bindings
