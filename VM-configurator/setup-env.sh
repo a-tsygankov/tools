@@ -77,7 +77,7 @@ brew_cask_install() {
     info "Already installed: $cask"
   else
     info "Installing $cask..."
-    brew install --cask "$cask"
+    brew install --cask "$cask" || warn "Skipping $cask (possibly already installed)"
   fi
 }
 
@@ -165,7 +165,17 @@ run_base() {
   brew_install openssh
   brew_cask_install google-chrome
   brew_cask_install github
-  brew_cask_install windsurf || true
+  # --- Install Windsurf only if missing ---
+  if have_cmd windsurf; then
+    info "Windsurf CLI detected."
+  elif [[ -d "/Applications/Windsurf.app" ]]; then
+    info "Windsurf already installed in /Applications."
+  elif brew list --cask --versions windsurf >/dev/null 2>&1; then
+    info "Windsurf already installed via Homebrew."
+  else
+    info "Installing Windsurf via Homebrew..."
+    brew_cask_install windsurf || warn "Could not install Windsurf automatically."
+  fi
 
   # Default bash shell
   local brew_bash="/opt/homebrew/bin/bash"
@@ -176,11 +186,9 @@ run_base() {
 
     if [[ "$SHELL" != "$brew_bash" ]]; then
       if [ -t 0 ]; then
-        # Interactive shell
         info "Changing login shell to $brew_bash (you may need to re-log)..."
         chsh -s "$brew_bash" || warn "Could not change shell automatically."
       else
-        # Non-interactive mode — skip to avoid hanging
         warn "Skipping chsh (non-interactive mode). Run manually if needed: chsh -s $brew_bash"
       fi
     else
@@ -214,56 +222,6 @@ EOS
 }
 
 # ============================================================
-#  JAVA SETUP (Gradle + IntelliJ)
-# ============================================================
-run_java() {
-  info "Installing JAVA dev environment..."
-
-  brew_cask_install temurin        # JDK 21 (Eclipse Temurin)
-  brew_cask_install intellij-idea  # IntelliJ Ultimate
-  brew_cask_install jetbrains-toolbox || true
-  brew_install gradle
-
-  append_once "$HOME/.bash_profile" "ENV:JAVA_HOME" 'export JAVA_HOME=$(/usr/libexec/java_home)'
-  append_once "$HOME/.bash_profile" "ENV:JAVA_PATH" 'export PATH="$JAVA_HOME/bin:$PATH"'
-
-  local JAVA_VSCODE_EXTS="
-redhat.java
-vscjava.vscode-java-pack
-vscjava.vscode-spring-boot-dashboard
-vscjava.vscode-spring-initializr
-richardwillis.vscode-gradle
-vscjava.vscode-java-test
-"
-  local JAVA_WINDSURF_EXTS="$JAVA_VSCODE_EXTS"
-
-  install_vscode_extensions "$JAVA_VSCODE_EXTS"
-  install_windsurf_extensions "$JAVA_WINDSURF_EXTS"
-
-  info "JAVA setup complete (JDK 21 + Gradle + Spring Boot support)."
-}
-
-# ============================================================
-#  DOTNET SETUP
-# ============================================================
-run_dotnet() {
-  info "Installing .NET 10 RC2+ environment..."
-  brew_install dotnet@10 || brew_install dotnet
-  dotnet --info || true
-
-  local DOTNET_EXTS="
-ms-dotnettools.csharp
-formulahendry.code-runner
-humao.rest-client
-ms-vscode.vscode-browser-debug
-"
-  install_vscode_extensions "$DOTNET_EXTS"
-  install_windsurf_extensions "$DOTNET_EXTS"
-
-  info ".NET setup complete."
-}
-
-# ============================================================
 #  EXTENSIONS (Chrome + Safari + Vite + React + TypeScript)
 # ============================================================
 run_extensions() {
@@ -279,7 +237,6 @@ run_extensions() {
 
   ensure_code_cli
   ensure_windsurf_cli
-  brew_cask_install jetbrains-toolbox || true
 
   # Safari converter requires Xcode 15+
   if ! xcodebuild -version >/dev/null 2>&1; then
@@ -302,13 +259,19 @@ peterjausovec.vscode-docker
   install_vscode_extensions "$EXT_BASE"
   install_windsurf_extensions "$EXT_BASE"
 
-  info "Extension dev setup complete (TS + React + Vite + . NET)."
+  info "Extension dev setup complete (TS + React + Vite + .NET)."
 }
 
 # ============================================================
 #  Orchestration
 # ============================================================
 main() {
+  info "Selected categories:"
+  if [ "$DO_BASE" = true ]; then echo "  BASE"; fi
+  if [ "$DO_JAVA" = true ]; then echo "  JAVA"; fi
+  if [ "$DO_DOTNET" = true ]; then echo "  DOTNET"; fi
+  if [ "$DO_EXT" = true ]; then echo "  EXTENSIONS"; fi
+
   if [ "$DO_BASE" = true ]; then run_base; fi
   if [ "$DO_JAVA" = true ]; then run_java; fi
   if [ "$DO_DOTNET" = true ]; then run_dotnet; fi
