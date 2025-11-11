@@ -163,8 +163,8 @@ run_base() {
   brew_install bash-completion@2
   brew_install git
   brew_install openssh
-  brew_cask_install google-chrome
-  brew_cask_install github
+  brew_cask_install google-chrome || true
+  brew_cask_install github || true
   # --- Install Windsurf only if missing ---
   if have_cmd windsurf; then
     info "Windsurf CLI detected."
@@ -225,6 +225,7 @@ EOS
 #  EXTENSIONS (Chrome + Safari + Vite + React + TypeScript)
 # ============================================================
 run_extensions() {
+  info "------ Starting EXTENSIONS phase ------"
   info "Setting up browser-extension dev stack..."
 
   brew_install node
@@ -272,12 +273,25 @@ main() {
   if [ "$DO_DOTNET" = true ]; then echo "  DOTNET"; fi
   if [ "$DO_EXT" = true ]; then echo "  EXTENSIONS"; fi
 
-  if [ "$DO_BASE" = true ]; then run_base; fi
-  if [ "$DO_JAVA" = true ]; then run_java; fi
-  if [ "$DO_DOTNET" = true ]; then run_dotnet; fi
-  if [ "$DO_EXT" = true ]; then run_extensions; fi
+  if [ "$DO_BASE" = true ]; then
+    run_base || warn "BASE setup reported warnings but continuing..."
+  fi
+
+  if [ "$DO_JAVA" = true ]; then
+    info "------ Starting JAVA phase ------"
+    run_java || warn "JAVA setup reported warnings but continuing..."
+  fi
+
+  if [ "$DO_DOTNET" = true ]; then
+    info "------ Starting DOTNET phase ------"
+    run_dotnet || warn "DOTNET setup reported warnings but continuing..."
+  fi
+
+  if [ "$DO_EXT" = true ]; then
+    info "------ Starting EXTENSIONS phase ------"
+    run_extensions || warn "EXTENSIONS setup reported warnings but continuing..."
+  fi
 
   info "✅ Environment setup complete. Restart your terminal or run: exec \$SHELL -l"
 }
-
 main "$@"
