@@ -222,6 +222,63 @@ EOS
 }
 
 # ============================================================
+#  JAVA SETUP (Gradle + IntelliJ)
+# ============================================================
+run_java() {
+  info "Installing JAVA dev environment..."
+
+  brew_cask_install temurin || true        # JDK 21 (Eclipse Temurin)
+  brew_cask_install intellij-idea || true  # IntelliJ Ultimate
+  brew_cask_install jetbrains-toolbox || true
+  brew_install gradle || true
+
+  append_once "$HOME/.bash_profile" "ENV:JAVA_HOME" 'export JAVA_HOME=$(/usr/libexec/java_home)'
+  append_once "$HOME/.bash_profile" "ENV:JAVA_PATH" 'export PATH="$JAVA_HOME/bin:$PATH"'
+
+  local JAVA_VSCODE_EXTS="
+redhat.java
+vscjava.vscode-java-pack
+vscjava.vscode-spring-boot-dashboard
+vscjava.vscode-spring-initializr
+richardwillis.vscode-gradle
+vscjava.vscode-java-test
+"
+  local JAVA_WINDSURF_EXTS="$JAVA_VSCODE_EXTS"
+
+  install_vscode_extensions "$JAVA_VSCODE_EXTS"
+  install_windsurf_extensions "$JAVA_WINDSURF_EXTS"
+
+  info "JAVA setup complete (JDK 21 + Gradle + Spring Boot support)."
+}
+
+# ============================================================
+#  DOTNET SETUP (.NET 10 RC2+)
+# ============================================================
+run_dotnet() {
+  info "Installing .NET 10 RC2+ environment..."
+
+  # Try installing via Homebrew (if not already present)
+  if ! have_cmd dotnet; then
+    brew_install dotnet@10 || brew_install dotnet
+  else
+    info ".NET SDK already present."
+  fi
+
+  dotnet --info || true
+
+  local DOTNET_EXTS="
+ms-dotnettools.csharp
+formulahendry.code-runner
+humao.rest-client
+ms-vscode.vscode-browser-debug
+"
+  install_vscode_extensions "$DOTNET_EXTS"
+  install_windsurf_extensions "$DOTNET_EXTS"
+
+  info ".NET setup complete."
+}
+
+# ============================================================
 #  EXTENSIONS (Chrome + Safari + Vite + React + TypeScript)
 # ============================================================
 run_extensions() {
