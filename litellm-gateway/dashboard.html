@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LiteLLM Gateway Dashboard</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f6f6f6}
+.section{background:white;padding:15px;border-radius:8px;margin-bottom:20px}
+.log-box{background:#000;color:#0f0;padding:10px;height:200px;overflow-y:scroll;font-family:monospace}
+.collapsible{cursor:pointer;padding:8px;background:#ddd;border-radius:5px;margin-top:5px}
+.content{display:none;padding:10px;background:#fafafa;border:1px solid #ccc}
+.status-green{color:green;font-weight:bold}
+.status-red{color:red;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>LiteLLM Gateway Dashboard</h1>
+
+<div class="section"><h2>Status</h2><div id="status">Loading...</div></div>
+<div class="section"><h2>Token Usage</h2><pre id="usage">Loading...</pre></div>
+<div class="section"><h2>Recent Logs</h2><div class="log-box" id="logs"></div></div>
+<div class="section"><h2>Request/Response History</h2><div id="requests">Loading...</div></div>
+
+<script>
+setInterval(refresh,2000); refresh();
+function refresh(){
+ loadStatus(); loadLogs(); loadUsage(); loadReq();
+}
+function loadStatus(){
+ fetch("status-json.sh").then(r=>r.json()).then(j=>{
+   document.getElementById("status").innerHTML=
+     j.running ? `<span class='status-green'>Running (PID ${j.pid})</span>`:
+                 `<span class='status-red'>Stopped</span>`;
+ });
+}
+function loadLogs(){
+ fetch("logs-tail.sh").then(r=>r.text()).then(t=>{
+   document.getElementById("logs").innerText=t;
+ });
+}
+function loadUsage(){
+ fetch("usage.sh").then(r=>r.text()).then(t=>{
+   document.getElementById("usage").innerText=t;
+ });
+}
+function loadReq(){
+ fetch("requests-log.json").then(r=>r.json()).then(arr=>{
+   let html=""; 
+   arr.forEach((it,i)=>{
+     html+=`
+       <div class='collapsible'>Request #${i+1}: ${it.model}</div>
+       <div class='content'><pre>${JSON.stringify(it,null,2)}</pre></div>`;
+   });
+   document.getElementById("requests").innerHTML=html;
+   document.querySelectorAll(".collapsible").forEach(btn=>{
+     btn.onclick=()=>{let c=btn.nextElementSibling;
+       c.style.display=c.style.display==="block"?"none":"block";
+     };
+   });
+ });
+}
+</script>
+</body></html>
