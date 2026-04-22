@@ -11,13 +11,13 @@
 //       /diagrams path/a.ts ...    → per-file, only listed paths
 //
 // Auth:
-//   - ANTHROPIC_API_KEY preferred; CLAUDE_CODE_OAUTH_TOKEN is fallback.
+//   - PR_MERMAID_ANTHROPIC_API_KEY preferred; CLAUDE_CODE_OAUTH_TOKEN is fallback.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { execSync } from "node:child_process";
 
 const {
-  ANTHROPIC_API_KEY,
+  PR_MERMAID_ANTHROPIC_API_KEY,
   CLAUDE_CODE_OAUTH_TOKEN,
   GITHUB_TOKEN,
   PR_NUMBER,
@@ -103,15 +103,15 @@ if (changedFiles.length === 0) {
 
 // ─────────────────────── 3. Build Anthropic client ─────────────────────────
 
-const clientOptions = ANTHROPIC_API_KEY
-  ? { apiKey: ANTHROPIC_API_KEY }
+const clientOptions = PR_MERMAID_ANTHROPIC_API_KEY
+  ? { apiKey: PR_MERMAID_ANTHROPIC_API_KEY }
   : {
       authToken: CLAUDE_CODE_OAUTH_TOKEN,
       defaultHeaders: { "anthropic-beta": "oauth-2025-04-20" },
     };
 
 const anthropic = new Anthropic(clientOptions);
-const authLabel = ANTHROPIC_API_KEY ? "API key" : "Claude subscription";
+const authLabel = PR_MERMAID_ANTHROPIC_API_KEY ? "API key" : "Claude subscription";
 
 // ─────────────────────── 4. Prompts ────────────────────────────────────────
 
