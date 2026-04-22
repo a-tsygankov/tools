@@ -20,7 +20,7 @@ pr-mermaid-diagrams/
 
 ## Quick start for a new consumer repo
 
-1. Add `ANTHROPIC_API_KEY` (or `CLAUDE_CODE_OAUTH_TOKEN`) to repo/org secrets
+1. Add `PR_MERMAID_ANTHROPIC_API_KEY` (or `CLAUDE_CODE_OAUTH_TOKEN`) to repo/org secrets
 2. Drop this into `.github/workflows/pr-diagrams.yml` in the consumer repo:
 
 ```yaml
@@ -35,7 +35,7 @@ jobs:
   diagrams:
     uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v1
     secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     permissions:
       pull-requests: write
@@ -53,7 +53,7 @@ The generator is plain Node 20 ESM. To iterate without pushing to GitHub:
 cd pr-mermaid-diagrams
 npm install
 # Dry-run by setting env vars pointing at a real PR diff
-ANTHROPIC_API_KEY=sk-... \
+PR_MERMAID_ANTHROPIC_API_KEY=sk-... \
 GITHUB_TOKEN=ghp_... \
 PR_NUMBER=42 \
 REPO=a-tsygankov/fc26-team-picker \

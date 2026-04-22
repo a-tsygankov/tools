@@ -19,7 +19,7 @@ name: PR Mermaid Diagrams (reusable)
 #   /diagrams path/a.ts path/b.java → per-file mode, just these files
 #
 # Authentication priority:
-#   1. ANTHROPIC_API_KEY  — direct API (recommended, costs ~cents/PR)
+#   1. PR_MERMAID_ANTHROPIC_API_KEY  — direct API (recommended, costs ~cents/PR)
 #   2. CLAUDE_CODE_OAUTH_TOKEN — Claude Pro/Max subscription (free, token expires)
 
 on:
@@ -46,7 +46,7 @@ on:
         type: number
         default: 15
     secrets:
-      ANTHROPIC_API_KEY:
+      PR_MERMAID_ANTHROPIC_API_KEY:
         required: false
       CLAUDE_CODE_OAUTH_TOKEN:
         required: false
@@ -71,15 +71,15 @@ jobs:
     steps:
       - name: Verify credentials
         env:
-          API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
           OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           if [ -z "$API_KEY" ] && [ -z "$OAUTH" ]; then
-            echo "::error::Neither ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN is set."
+            echo "::error::Neither PR_MERMAID_ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN is set."
             exit 1
           fi
           if [ -n "$API_KEY" ]; then
-            echo "Using ANTHROPIC_API_KEY (direct API)."
+            echo "Using PR_MERMAID_ANTHROPIC_API_KEY (direct API)."
           else
             echo "Using CLAUDE_CODE_OAUTH_TOKEN (Claude subscription)."
           fi
@@ -142,7 +142,7 @@ jobs:
 
       - name: Generate diagrams
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}

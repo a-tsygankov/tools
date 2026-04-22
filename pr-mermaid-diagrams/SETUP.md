@@ -23,7 +23,7 @@ Hosted at [`a-tsygankov/tools`](https://github.com/a-tsygankov/tools).
 
 ### Option A: Anthropic API key (recommended)
 
-- **Name:** `ANTHROPIC_API_KEY`
+- **Name:** `PR_MERMAID_ANTHROPIC_API_KEY`
 - **Value:** your `sk-ant-...` key
 
 Cost with Sonnet is typically well under $0.01 per PR (overview mode). Per-file mode on a 10-file PR might run $0.05–0.15. Tokens never expire.
@@ -63,7 +63,7 @@ jobs:
   diagrams:
     uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v1
     secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     permissions:
       pull-requests: write
@@ -119,7 +119,7 @@ jobs:
       max_file_diff_chars: 60000      # per-file diff cap
       max_files: 25                   # file cap for per-file mode
     secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
@@ -145,7 +145,7 @@ Use Opus when diagram quality matters more than speed or cost. Sonnet is fine fo
 
 **`/diagrams` comment does nothing.** Confirm `.github/workflows/pr-diagrams.yml` includes `issue_comment` trigger and `issues: read` permission. Command must start at the beginning of the comment (no quoting, no leading whitespace).
 
-**"Neither ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN is set"** — add one as a repo or org secret.
+**"Neither PR_MERMAID_ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN is set"** — add one as a repo or org secret.
 
 **OAuth fails with 401.** Token expired. Run `claude setup-token` again, or switch to API key.
 
