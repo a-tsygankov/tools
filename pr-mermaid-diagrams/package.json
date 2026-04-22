@@ -1,0 +1,10 @@
+{
+  "name": "pr-mermaid-diagrams",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generator for PR Mermaid diagrams — used by .github/workflows/pr-mermaid-diagrams.yml",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest"
+  }
+}
