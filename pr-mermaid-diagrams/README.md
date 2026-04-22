@@ -33,7 +33,7 @@ on:
 
 jobs:
   diagrams:
-    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v1
+    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v2
     secrets:
       PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -67,7 +67,7 @@ node scripts/generate-pr-diagrams.mjs
 
 Consumers pin the reusable workflow by git ref:
 
-- `@v1` — latest stable (bumped via tag)
+- `@v2` — latest stable (bumped via tag on breaking changes)
 - `@main` — rolling (pick this only for repos where you're willing to eat a broken workflow)
 - `@<sha>` — fully pinned
 
