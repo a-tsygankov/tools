@@ -2,7 +2,7 @@
 
 All notable changes to `pr-mermaid-diagrams`.
 
-## [2.0.0] — Unreleased
+## [2.0.0] — 2026-04-22
 
 ### Breaking
 - Renamed the Anthropic API key secret from `ANTHROPIC_API_KEY` to `PR_MERMAID_ANTHROPIC_API_KEY` to avoid collisions with other workflows in the same repo/org that consume a generic `ANTHROPIC_API_KEY`. Consumers must rename the secret and update their workflow stub. OAuth path (`CLAUDE_CODE_OAUTH_TOKEN`) unchanged.

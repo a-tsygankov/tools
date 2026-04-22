@@ -61,7 +61,7 @@ on:
 
 jobs:
   diagrams:
-    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v1
+    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v2
     secrets:
       PR_MERMAID_ANTHROPIC_API_KEY: ${{ secrets.PR_MERMAID_ANTHROPIC_API_KEY }}
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
       issues: read
 ```
 
-Pin `@v1` for stability or `@main` for rolling updates.
+Pin `@v2` for stability or `@main` for rolling updates.
 
 > The `issue_comment` trigger is what makes `/diagrams` commands work. GitHub uses the same event for PR comments and issue comments; the workflow filters to PR contexts internally.
 
@@ -112,7 +112,7 @@ The trigger comment gets an 👀 reaction when processing starts, 🚀 when done
 ```yaml
 jobs:
   diagrams:
-    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v1
+    uses: a-tsygankov/tools/.github/workflows/pr-mermaid-diagrams.yml@v2
     with:
       model: claude-opus-4-7          # default: claude-sonnet-4-6
       max_diff_chars: 200000          # total diff cap, overview mode
