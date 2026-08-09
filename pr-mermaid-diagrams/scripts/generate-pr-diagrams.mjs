@@ -115,6 +115,28 @@ const authLabel = PR_MERMAID_ANTHROPIC_API_KEY ? "API key" : "Claude subscriptio
 
 // ─────────────────────── 4. Prompts ────────────────────────────────────────
 
+// Rules that keep generated diagrams renderable on GitHub. Each one
+// corresponds to a failure seen in the wild — GitHub renders Mermaid
+// with htmlLabels disabled and recovers from nothing, so a single bad
+// token replaces the whole diagram with "Unable to render rich display".
+const mermaidSyntaxRules = `Mermaid syntax rules (GitHub's renderer is strict — a single violation
+replaces the entire diagram with "Unable to render rich display"):
+- NEVER use a Mermaid keyword as a node id: end, call, click, class,
+  classDef, style, graph, subgraph, href, link, default, state, note.
+  \`call[do the thing]\` is a parse error because \`call\` belongs to the
+  \`click X call handler()\` syntax. Rename the node (invoke, doCall, …).
+- Node ids must be plain ASCII letters, digits and underscores. Put the
+  human text in the label, never in the id.
+- Keep every label on ONE line. A literal \\n is a parse error, and
+  \`<br/>\` is stripped by GitHub (htmlLabels is off), which silently
+  welds the words either side together — "next provider<br/>in chain"
+  renders as "next providerin chain". Shorten the label instead.
+- Quote any label containing special characters:
+  \`node{"a == b && c?"}\`. Unquoted \`==\`, \`!=\`, \`--\`, \`&\`, \`|\`, \`(\`, \`[\`
+  can be read as link or shape syntax. The same goes for edge labels
+  carrying punctuation: \`A -- "2+" --> B\`.
+- Declare each node once with its label, then reference it by bare id.`;
+
 const overviewSystemPrompt = `You analyze GitHub pull request diffs and produce Mermaid diagrams that illustrate the changes.
 
 Output format (strict):
@@ -128,7 +150,9 @@ Output format (strict):
 - Prefix each diagram with a short heading (### Before / ### After, or ### Flow, etc.).
 - If the change is trivial (formatting, renames, dep bumps), say so in one sentence and skip the diagrams.
 - Do NOT reproduce the diff. Do NOT add commentary beyond what's needed to read the diagrams.
-- Keep node labels short. Escape special characters that break Mermaid parsing.`;
+- Keep node labels short.
+
+${mermaidSyntaxRules}`;
 
 const perFileSystemPrompt = `You analyze a single file's diff from a GitHub pull request and produce a focused Mermaid diagram for that file.
 
@@ -136,7 +160,9 @@ Output format (strict):
 - One or two sentences stating what this file's change does.
 - Exactly one Mermaid diagram in a \`\`\`mermaid fenced block, showing the most informative view of THIS FILE's change (flow, structure, state, or sequence — pick what fits).
 - If the file change is trivial (whitespace, import reorder, dep bump, rename only), write "_Trivial change; no diagram._" and skip the diagram.
-- Keep labels short. Do not reproduce the diff.`;
+- Keep labels short. Do not reproduce the diff.
+
+${mermaidSyntaxRules}`;
 
 // ─────────────────────── 5. Generate ───────────────────────────────────────
 
